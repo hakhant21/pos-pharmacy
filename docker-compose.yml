@@ -1,0 +1,20 @@
+services:
+    backend:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: backend
+        working_dir: /var/www/html
+        ports:
+            - "9000:9000"
+        volumes:
+            - ./:/var/www/html
+            - ./docker/supervisor/supervisord.conf:/etc/supervisor/supervisord.conf
+        restart: unless-stopped
+        command: ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]
+        networks:
+            - app-network
+
+networks:
+    app-network:
+        driver: bridge
