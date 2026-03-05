@@ -1,137 +1,154 @@
-import { useCallback } from "react";
-
-const API_ENDPOINTS = {
-    UPDATE: "/cart/update",
-    REMOVE: (index) => `/cart/remove/${index}`,
-    CLEAR: "/cart/clear",
-    CHECKOUT: "/cart/checkout",
-};
+import { useState } from "react";
+import { toast } from "react-toastify";
 
 export const useCartOperations = (setCart, setCartCount) => {
-    const getCsrfToken = useCallback(
-        () =>
-            document
-                .querySelector('meta[name="csrf-token"]')
-                ?.getAttribute("content") || "",
-        [],
-    );
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleResponse = useCallback(
-        async (response, successMessage, errorMessage) => {
-            const data = await response.json();
-
-            if (data.success) {
-                if (data.cart) setCart(data.cart);
-                if (data.cart_count !== undefined)
-                    setCartCount(data.cart_count);
-
-                if (window.showToast) {
-                    window.showToast(successMessage, "success");
-                }
-                window.dispatchEvent(new CustomEvent("cart-updated"));
-            } else {
-                if (window.showToast) {
-                    window.showToast(data.message || errorMessage, "error");
-                }
-            }
-            return data;
-        },
-        [setCart, setCartCount],
-    );
-
-    const updateQuantity = useCallback(
-        async (index, newQuantity) => {
-            if (newQuantity < 1) return { needsDelete: true, index };
-
-            try {
-                const response = await fetch(API_ENDPOINTS.UPDATE, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": getCsrfToken(),
-                    },
-                    body: JSON.stringify({ index, quantity: newQuantity }),
-                });
-
-                return await handleResponse(
-                    response,
-                    "Cart updated",
-                    "Error updating cart",
-                );
-            } catch (error) {
-                console.error("Error updating cart:", error);
-                if (window.showToast)
-                    window.showToast("Error updating cart", "error");
-            }
-        },
-        [getCsrfToken, handleResponse],
-    );
-
-    const removeItem = useCallback(
-        async (index) => {
-            try {
-                const response = await fetch(API_ENDPOINTS.REMOVE(index), {
-                    method: "DELETE",
-                    headers: { "X-CSRF-TOKEN": getCsrfToken() },
-                });
-
-                return await handleResponse(
-                    response,
-                    "Item removed from cart",
-                    "Error removing item",
-                );
-            } catch (error) {
-                console.error("Error removing item:", error);
-                if (window.showToast)
-                    window.showToast("Error removing item", "error");
-            }
-        },
-        [getCsrfToken, handleResponse],
-    );
-
-    const clearCart = useCallback(async () => {
-        if (!confirm("Are you sure you want to clear all items?")) return;
-
+    const updateQuantity = async (index, newQuantity) => {
+        setIsLoading(true);
         try {
-            const response = await fetch(API_ENDPOINTS.CLEAR, {
+            const response = await fetch("/cart/update", {
                 method: "POST",
-                headers: { "X-CSRF-TOKEN": getCsrfToken() },
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": document
+                        .querySelector('meta[name="csrf-token"]')
+                        ?.getAttribute("content"),
+                    Accept: "application/json",
+                },
+                body: JSON.stringify({ index, quantity: newQuantity }),
             });
 
-            return await handleResponse(
-                response,
-                "Cart cleared",
-                "Error clearing cart",
-            );
-        } catch (error) {
-            console.error("Error clearing cart:", error);
-            if (window.showToast)
-                window.showToast("Error clearing cart", "error");
-        }
-    }, [getCsrfToken, handleResponse]);
+            const data = await response.json();
 
-    const processCheckout = useCallback(
-        async (customerData) => {
-            try {
-                const response = await fetch(API_ENDPOINTS.CHECKOUT, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": getCsrfToken(),
-                    },
-                    body: JSON.stringify(customerData),
-                });
-
-                return await response.json();
-            } catch (error) {
-                console.error("Checkout error:", error);
-                if (window.showToast)
-                    window.showToast("Checkout failed", "error");
-                throw error;
+            if (!response.ok) {
+                throw new Error(data.message || "Failed to update quantity");
             }
-        },
-        [getCsrfToken],
-    );
 
-    return { updateQuantity, removeItem, clearCart, processCheckout };
+            setCart(data.cart);
+            setCartCount(data.count);
+            window.dispatchEvent(new Event("cart-updated"));
+
+            return data;
+        } catch (error) {
+            console.error("Update quantity error:", error);
+            throw error;
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const removeItem = async (index) => {
+        setIsLoading(true);
+        try {
+            const response = await fetch("/cart/remove/" + index, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": document
+                        .querySelector('meta[name="csrf-token"]')
+                        ?.getAttribute("content"),
+                    Accept: "application/json",
+                },
+                body: JSON.stringify({ index }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "Failed to remove item");
+            }
+
+            setCart(data.cart);
+            setCartCount(data.count);
+            window.dispatchEvent(new Event("cart-updated"));
+
+            return data;
+        } catch (error) {
+            console.error("Remove item error:", error);
+            throw error;
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const clearCart = async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch("/cart/clear", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": document
+                        .querySelector('meta[name="csrf-token"]')
+                        ?.getAttribute("content"),
+                    Accept: "application/json",
+                },
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "Failed to clear cart");
+            }
+
+            setCart([]);
+            setCartCount(0);
+            window.dispatchEvent(new Event("cart-updated"));
+
+            return data;
+        } catch (error) {
+            console.error("Clear cart error:", error);
+            throw error;
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const processCheckout = async (checkoutData) => {
+        setIsLoading(true);
+        try {
+            const response = await fetch("/cart/checkout", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": document
+                        .querySelector('meta[name="csrf-token"]')
+                        ?.getAttribute("content"),
+                    Accept: "application/json",
+                },
+                body: JSON.stringify(checkoutData),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "Checkout failed");
+            }
+
+            window.dispatchEvent(new Event("cart-updated"));
+
+            return {
+                success: true,
+                message: "Checkout successful",
+                sale: data.sale || data,
+            };
+        } catch (error) {
+            console.error("Checkout error:", error);
+            return {
+                success: false,
+                message: error.message || "Checkout failed",
+            };
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return {
+        updateQuantity,
+        removeItem,
+        clearCart,
+        processCheckout,
+        isLoading,
+    };
 };

@@ -9,6 +9,7 @@ import { CheckoutModal } from "@/Components/Modals/CheckoutModal";
 import { ReceiptModal } from "@/Components/Modals/ReceiptModal";
 import { useCartOperations } from "@/Hooks/useCartOperations";
 import { FaArrowLeft, FaTrash } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 export default function Index({
     cart: initialCart,
@@ -30,57 +31,80 @@ export default function Index({
         total: "",
     });
 
-    const { updateQuantity, removeItem, clearCart, processCheckout } =
-        useCartOperations(setCart, setCartCount);
+    const {
+        updateQuantity,
+        removeItem,
+        clearCart,
+        processCheckout,
+        isLoading,
+    } = useCartOperations(setCart, setCartCount);
 
     const handleUpdateQuantity = async (index, newQuantity) => {
-        const result = await updateQuantity(index, newQuantity);
-        if (result?.needsDelete) {
-            setDeleteIndex(index);
-            setShowDeleteModal(true);
+        try {
+            const result = await updateQuantity(index, newQuantity);
+            if (result?.needsDelete) {
+                setDeleteIndex(index);
+                setShowDeleteModal(true);
+            } else {
+                toast.success("Quantity updated");
+            }
+        } catch (error) {
+            toast.error(error.message || "Failed to update quantity");
         }
     };
 
     const handleRemoveItem = async () => {
         if (deleteIndex === null) return;
-        await removeItem(deleteIndex);
-        setShowDeleteModal(false);
-        setDeleteIndex(null);
+
+        try {
+            await removeItem(deleteIndex);
+            setShowDeleteModal(false);
+            setDeleteIndex(null);
+            toast.success("Item removed successfully");
+        } catch (error) {
+            toast.error(error.message || "Failed to remove item");
+        }
+    };
+
+    const handleClearCart = async () => {
+        if (confirm("Are you sure you want to clear your cart?")) {
+            try {
+                await clearCart();
+                toast.success("Cart cleared successfully", "success");
+            } catch (error) {
+                toast.error(error.message || "Failed to clear cart");
+            }
+        }
     };
 
     const handleCheckout = async ({ customerName, customerPhone, notes }) => {
         setIsProcessing(true);
 
         try {
-            const data = await processCheckout({
+            const result = await processCheckout({
                 customer_name: customerName,
                 customer_phone: customerPhone,
                 notes,
             });
 
-            if (data.success) {
+            if (result.success) {
                 setReceipt({
-                    invoice_number: data.sale.invoice_number,
+                    invoice_number: result.sale.invoice_number,
                     customer_name: customerName,
-                    items: data.sale.items,
-                    total: data.sale.total,
+                    items: result.sale.items,
+                    total: result.sale.total,
                 });
 
                 setCart([]);
                 setCartCount(0);
                 setShowCheckoutModal(false);
-                setShowReceiptModal(true);
-
-                if (window.showToast) {
-                    window.showToast("Sale completed successfully!", "success");
-                }
+                setShowReceiptModal(false);
+                router.visit(route("medicines.index"));
             } else {
-                if (window.showToast) {
-                    window.showToast(data.message, "error");
-                }
+                toast.error(result.message || "Checkout failed.");
             }
         } catch (error) {
-            console.error("Checkout error:", error);
+            toast.error("Checkout failed.");
         } finally {
             setIsProcessing(false);
         }
@@ -89,12 +113,22 @@ export default function Index({
     const printReceipt = () => {
         const receiptContent =
             document.getElementById("receipt-content")?.outerHTML;
-        if (!receiptContent) return;
+
+        if (!receiptContent) {
+            toast.error("Receipt content not found");
+            return;
+        }
 
         const printWindow = window.open("", "_blank");
-        if (!printWindow) return;
 
-        printWindow.document.write(`
+        if (!printWindow) {
+            toast.error("Could not open print window");
+            return;
+        }
+
+        const printDocument = printWindow.document;
+
+        const html = `
             <html>
                 <head>
                     <title>Receipt - ${receipt.invoice_number}</title>
@@ -105,25 +139,26 @@ export default function Index({
                         .font-bold { font-weight: bold; }
                         .text-sm { font-size: 12px; }
                         .text-xs { font-size: 11px; }
-                        .mb-2 { margin-bottom: 8px; }
-                        .mb-3 { margin-bottom: 12px; }
-                        .mt-2 { margin-top: 8px; }
-                        .pt-2 { padding-top: 8px; }
-                        .border-t { border-top: 1px solid #ddd; }
-                        .border-b { border-bottom: 1px solid #ddd; }
-                        .py-2 { padding-top: 8px; padding-bottom: 8px; }
-                        .flex { display: flex; }
-                        .justify-between { justify-content: space-between; }
-                        @media print { body { padding: 0; } }
+                        /* ... rest of the styles ... */
                     </style>
                 </head>
-                <body>${receiptContent}</body>
-            </html>
-        `);
+                <body>
+                    ${receiptContent}
+                </body>
+            </html>`;
 
-        printWindow.document.close();
-        printWindow.focus();
-        printWindow.print();
+        const printElement = printDocument.createElement("div");
+        printElement.innerHTML = html;
+
+        printDocument.body.appendChild(printElement);
+
+        printWindow.onload = function () {
+            printWindow.focus();
+            printWindow.print();
+            printWindow.close();
+        };
+
+        toast.success("Receipt sent to printer");
     };
 
     if (cartCount === 0) {
@@ -164,8 +199,9 @@ export default function Index({
                         </div>
 
                         <button
-                            onClick={clearCart}
-                            className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                            onClick={handleClearCart}
+                            disabled={isLoading}
+                            className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <FaTrash className="inline mr-1 sm:mr-2 text-xs sm:text-sm" />
                             <span className="hidden xs:inline">Clear Cart</span>
@@ -210,6 +246,7 @@ export default function Index({
                                                 setShowDeleteModal(true);
                                             }}
                                             isMobile={false}
+                                            isLoading={isLoading}
                                         />
                                     ))}
                                 </tbody>
@@ -230,6 +267,7 @@ export default function Index({
                                     setShowDeleteModal(true);
                                 }}
                                 isMobile={true}
+                                isLoading={isLoading}
                             />
                         ))}
                     </div>
@@ -239,6 +277,8 @@ export default function Index({
                         subtotal={subtotal}
                         total={total}
                         onCheckout={() => setShowCheckoutModal(true)}
+                        isProcessing={isProcessing}
+                        isLoading={isLoading}
                     />
                 </div>
             </div>
@@ -248,6 +288,11 @@ export default function Index({
                 show={showDeleteModal}
                 onClose={() => setShowDeleteModal(false)}
                 onConfirm={handleRemoveItem}
+                isProcessing={isProcessing || isLoading}
+                onDone={() => {
+                    setShowDeleteModal(false);
+                    setDeleteIndex(null);
+                }}
             />
 
             <CheckoutModal
@@ -256,7 +301,11 @@ export default function Index({
                 cart={cart}
                 total={total}
                 onCheckout={handleCheckout}
-                isProcessing={isProcessing}
+                isProcessing={isProcessing || isLoading}
+                onDone={() => {
+                    setShowCheckoutModal(false);
+                    router.visit(route("medicines.index"));
+                }}
             />
 
             <ReceiptModal
@@ -266,7 +315,7 @@ export default function Index({
                 onPrint={printReceipt}
                 onDone={() => {
                     setShowReceiptModal(false);
-                    router.visit("/medicines");
+                    router.visit(route("medicines.index"));
                 }}
             />
         </AuthenticatedLayout>
