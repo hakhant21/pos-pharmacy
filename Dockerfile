@@ -23,11 +23,12 @@ RUN apt-get update -o Acquire::Retries=5 && apt-get install -y --no-install-reco
 
 # Configure and install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd pdo pdo_mysql pcntl zip
+    && docker-php-ext-install -j$(nproc) gd pdo pdo_mysql pcntl zip sqlite
 
 # Install and enable Redis extension
 RUN pecl install redis \
-    && docker-php-ext-enable redis
+    && docker-php-ext-enable redis \
+    && docker-php-ext-install ext-intl
 
 # Set timezone
 ENV TZ='Asia/Yangon'
