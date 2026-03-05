@@ -1,0 +1,13 @@
+2026-03-05 22:15:40,493 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2026-03-05 22:15:40,493 WARN For [program:laravel-start], redirect_stderr=true but stderr_logfile has also been set to a filename, the filename has been ignored
+2026-03-05 22:15:40,494 INFO supervisord started with pid 1
+2026-03-05 22:15:41,506 INFO spawned: 'laravel-start' with pid 7
+2026-03-05 22:15:42,512 INFO success: laravel-start entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-03-05 22:16:53,062 WARN received SIGQUIT indicating exit request
+2026-03-05 22:16:53,064 INFO waiting for laravel-start to die
+2026-03-05 22:16:53,102 INFO stopped: laravel-start (exit status 0)
+2026-03-05 22:26:53,770 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2026-03-05 22:26:53,770 WARN For [program:laravel-start], redirect_stderr=true but stderr_logfile has also been set to a filename, the filename has been ignored
+2026-03-05 22:26:53,772 INFO supervisord started with pid 1
+2026-03-05 22:26:54,787 INFO spawned: 'laravel-start' with pid 7
+2026-03-05 22:26:55,796 INFO success: laravel-start entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
