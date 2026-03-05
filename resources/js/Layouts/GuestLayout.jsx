@@ -3,7 +3,7 @@ import { Link, usePage } from "@inertiajs/react";
 import { FaPills, FaShoppingCart, FaBars, FaTimes } from "react-icons/fa";
 import { ToastContainer } from "@/Components/ToastContainer";
 
-export default function AuthenticatedLayout({ header, children }) {
+export default function GuestLayout({ header, children }) {
     const { url } = usePage();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [cartCount, setCartCount] = useState(0);
