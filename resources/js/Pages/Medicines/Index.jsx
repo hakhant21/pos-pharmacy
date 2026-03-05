@@ -190,8 +190,119 @@ export default function Index({
             }
         >
             <Head title="Medicines" />
-            <div className="py-6">
+
+            <>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div>
+                        {/* Sales Summary Section */}
+                        {salesSummary && (
+                            <div className="mb-6 sm:mb-8">
+                                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+                                    {/* Summary Header */}
+                                    <div className="px-4 sm:px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+                                        <div className="flex items-center space-x-2">
+                                            <FaChartLine className="text-lg sm:text-xl" />
+                                            <h2 className="text-base sm:text-lg font-semibold">
+                                                Sales Overview
+                                            </h2>
+                                        </div>
+                                    </div>
+
+                                    {/* Summary Cards */}
+                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 p-4 sm:p-6">
+                                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 sm:p-4">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                                                    Total Sales
+                                                </span>
+                                                <FaShoppingBag className="text-blue-600 dark:text-blue-400 text-sm sm:text-base" />
+                                            </div>
+                                            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                                                {formatNumber(
+                                                    salesSummary.total_sales,
+                                                )}
+                                            </p>
+                                            <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                                                +{salesSummary.today_sales}{" "}
+                                                today
+                                            </p>
+                                        </div>
+
+                                        <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 sm:p-4">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                                                    Items Sold
+                                                </span>
+                                                <FaBox className="text-green-600 dark:text-green-400 text-sm sm:text-base" />
+                                            </div>
+                                            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                                                {formatNumber(
+                                                    salesSummary.total_items_sold,
+                                                )}
+                                            </p>
+                                        </div>
+
+                                        <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 sm:p-4">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                                                    Total Revenue
+                                                </span>
+                                                <FaMoneyBillWave className="text-purple-600 dark:text-purple-400 text-sm sm:text-base" />
+                                            </div>
+                                            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                                                {formatPrice(
+                                                    salesSummary.total_revenue,
+                                                )}
+                                            </p>
+                                            <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                                                +
+                                                {formatPrice(
+                                                    salesSummary.today_revenue,
+                                                )}{" "}
+                                                today
+                                            </p>
+                                        </div>
+
+                                        <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-3 sm:p-4">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                                                    Avg. Order
+                                                </span>
+                                                <FaUsers className="text-orange-600 dark:text-orange-400 text-sm sm:text-base" />
+                                            </div>
+                                            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                                                {formatPrice(
+                                                    salesSummary.average_order_value,
+                                                )}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    {/* Recent Sales Table with Total */}
+
+                                    {salesSummary.recent_sales &&
+                                        salesSummary.recent_sales.length >
+                                            0 && (
+                                            <div className="border-t border-gray-200 dark:border-gray-700">
+                                                <div className="px-4 sm:px-6 py-3 bg-gray-50 dark:bg-gray-700/50 flex justify-between items-center">
+                                                    <h3 className="text-2xl font-medium text-gray-700 dark:text-gray-300">
+                                                        Total Sales
+                                                    </h3>
+                                                    <div className="flex items-center space-x-2 bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full">
+                                                        <FaCalculator className="text-blue-600 dark:text-blue-400 text-xs" />
+                                                        <span className="text-2xl font-medium text-blue-600 dark:text-blue-400">
+                                                            Total:{" "}
+                                                            {formatPrice(
+                                                                recentSalesTotal,
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                     {/* Filters - Desktop */}
                     <div className="hidden md:block bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 sm:p-6 mb-6">
                         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
@@ -479,254 +590,8 @@ export default function Index({
                             </div>
                         </div>
                     )}
-
-                    <div className="mt-6 sm:mt-8">
-                        {/* Sales Summary Section */}
-                        {salesSummary && (
-                            <div className="mb-6 sm:mb-8">
-                                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-                                    {/* Summary Header */}
-                                    <div className="px-4 sm:px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-                                        <div className="flex items-center space-x-2">
-                                            <FaChartLine className="text-lg sm:text-xl" />
-                                            <h2 className="text-base sm:text-lg font-semibold">
-                                                Sales Overview
-                                            </h2>
-                                        </div>
-                                    </div>
-
-                                    {/* Summary Cards */}
-                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 p-4 sm:p-6">
-                                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 sm:p-4">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                                                    Total Sales
-                                                </span>
-                                                <FaShoppingBag className="text-blue-600 dark:text-blue-400 text-sm sm:text-base" />
-                                            </div>
-                                            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-                                                {formatNumber(
-                                                    salesSummary.total_sales,
-                                                )}
-                                            </p>
-                                            <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                                                +{salesSummary.today_sales}{" "}
-                                                today
-                                            </p>
-                                        </div>
-
-                                        <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 sm:p-4">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                                                    Items Sold
-                                                </span>
-                                                <FaBox className="text-green-600 dark:text-green-400 text-sm sm:text-base" />
-                                            </div>
-                                            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-                                                {formatNumber(
-                                                    salesSummary.total_items_sold,
-                                                )}
-                                            </p>
-                                        </div>
-
-                                        <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 sm:p-4">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                                                    Total Revenue
-                                                </span>
-                                                <FaMoneyBillWave className="text-purple-600 dark:text-purple-400 text-sm sm:text-base" />
-                                            </div>
-                                            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-                                                {formatPrice(
-                                                    salesSummary.total_revenue,
-                                                )}
-                                            </p>
-                                            <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                                                +
-                                                {formatPrice(
-                                                    salesSummary.today_revenue,
-                                                )}{" "}
-                                                today
-                                            </p>
-                                        </div>
-
-                                        <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-3 sm:p-4">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                                                    Avg. Order
-                                                </span>
-                                                <FaUsers className="text-orange-600 dark:text-orange-400 text-sm sm:text-base" />
-                                            </div>
-                                            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-                                                {formatPrice(
-                                                    salesSummary.average_order_value,
-                                                )}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Top Selling Today */}
-                                    {salesSummary.top_selling_today &&
-                                        salesSummary.top_selling_today.length >
-                                            0 && (
-                                            <div className="border-t border-gray-200 dark:border-gray-700">
-                                                <div className="px-4 sm:px-6 py-3 bg-gray-50 dark:bg-gray-700/50">
-                                                    <div className="flex items-center space-x-2">
-                                                        <FaTrophy className="text-yellow-500" />
-                                                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                            Top Selling
-                                                            Medicines Today
-                                                        </h3>
-                                                    </div>
-                                                </div>
-                                                <div className="overflow-x-auto">
-                                                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                                        <thead className="bg-gray-50 dark:bg-gray-800">
-                                                            <tr>
-                                                                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                                    Medicine
-                                                                </th>
-                                                                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                                    Quantity
-                                                                    Sold
-                                                                </th>
-                                                                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                                    Revenue
-                                                                </th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                                            {salesSummary.top_selling_today.map(
-                                                                (
-                                                                    item,
-                                                                    index,
-                                                                ) => (
-                                                                    <tr
-                                                                        key={
-                                                                            index
-                                                                        }
-                                                                        className="hover:bg-gray-50 dark:hover:bg-gray-700/50"
-                                                                    >
-                                                                        <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                                            {
-                                                                                item.medicine_name
-                                                                            }
-                                                                        </td>
-                                                                        <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                                                            {formatNumber(
-                                                                                item.quantity,
-                                                                            )}{" "}
-                                                                            units
-                                                                        </td>
-                                                                        <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm font-medium text-green-600 dark:text-green-400">
-                                                                            {formatPrice(
-                                                                                item.revenue,
-                                                                            )}
-                                                                        </td>
-                                                                    </tr>
-                                                                ),
-                                                            )}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                    {/* Recent Sales Table with Total */}
-                                    {salesSummary.recent_sales &&
-                                        salesSummary.recent_sales.length >
-                                            0 && (
-                                            <div className="border-t border-gray-200 dark:border-gray-700">
-                                                <div className="px-4 sm:px-6 py-3 bg-gray-50 dark:bg-gray-700/50 flex justify-between items-center">
-                                                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                        Recent Sales
-                                                    </h3>
-                                                    <div className="flex items-center space-x-2 bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full">
-                                                        <FaCalculator className="text-blue-600 dark:text-blue-400 text-xs" />
-                                                        <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
-                                                            Total:{" "}
-                                                            {formatPrice(
-                                                                recentSalesTotal,
-                                                            )}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <div className="overflow-x-auto">
-                                                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                                        <thead className="bg-gray-50 dark:bg-gray-800">
-                                                            <tr>
-                                                                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                                    Customer
-                                                                </th>
-                                                                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                                    Items
-                                                                </th>
-                                                                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                                    Total
-                                                                </th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                                            {salesSummary.recent_sales.map(
-                                                                (sale) => (
-                                                                    <tr
-                                                                        key={
-                                                                            sale.id
-                                                                        }
-                                                                        className="hover:bg-gray-50 dark:hover:bg-gray-700/50"
-                                                                    >
-                                                                        <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                                                            {
-                                                                                sale.customer
-                                                                            }
-                                                                        </td>
-                                                                        <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                                                            {
-                                                                                sale.total_items
-                                                                            }
-                                                                        </td>
-                                                                        <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm font-medium text-green-600 dark:text-green-400">
-                                                                            {formatPrice(
-                                                                                sale.total,
-                                                                            )}
-                                                                        </td>
-                                                                    </tr>
-                                                                ),
-                                                            )}
-                                                            {/* Total Row */}
-                                                            <tr className="bg-gray-50 dark:bg-gray-700/50 font-semibold">
-                                                                <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                                                    Total
-                                                                </td>
-                                                                <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                                                    {salesSummary.recent_sales.reduce(
-                                                                        (
-                                                                            sum,
-                                                                            sale,
-                                                                        ) =>
-                                                                            sum +
-                                                                            (sale.total_items ||
-                                                                                0),
-                                                                        0,
-                                                                    )}
-                                                                </td>
-                                                                <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm font-bold text-blue-600 dark:text-blue-400">
-                                                                    {formatPrice(
-                                                                        recentSalesTotal,
-                                                                    )}
-                                                                </td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        )}
-                                </div>
-                            </div>
-                        )}
-                    </div>
                 </div>
-            </div>
+            </>
 
             {/* Batches Modal - Larger Size */}
             <Modal

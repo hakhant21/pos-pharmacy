@@ -65,12 +65,12 @@ class MedicineController extends Controller
 
         // Today's sales
         $todaySales = Sale::whereDate('created_at', $today)->count();
-        $todayRevenue = Sale::whereDate('created_at', $today)->sum('total') / 100; // Convert cents to dollars
+        $todayRevenue = Sale::whereDate('created_at', $today)->sum('total'); // Convert cents to dollars
 
         // Total sales (all time)
         $totalSales = Sale::count();
         $totalItemsSold = SaleItem::sum('quantity');
-        $totalRevenue = Sale::sum('total') / 100; // Convert cents to dollars
+        $totalRevenue = Sale::sum('total'); // Convert cents to dollars
 
         // Average order value
         $averageOrderValue = $totalSales > 0 ? $totalRevenue / $totalSales : 0;
@@ -80,7 +80,6 @@ class MedicineController extends Controller
             $q->select('sale_id', 'medicine_id', 'quantity', 'unit_price', 'total_price');
         }])
             ->orderBy('created_at', 'desc')
-            ->limit(5)
             ->get()
             ->map(function ($sale) {
                 return [
@@ -103,7 +102,6 @@ class MedicineController extends Controller
             ->with('medicine:id,name')
             ->groupBy('medicine_id')
             ->orderBy('total_quantity', 'desc')
-            ->limit(5)
             ->get()
             ->map(function ($item) {
                 return [
@@ -125,7 +123,7 @@ class MedicineController extends Controller
             'top_selling_today' => $topSellingToday,
         ];
 
-        
+
         return Inertia::render('Medicines/Index', [
             'medicines' => $medicines,
             'categories' => $categories,
