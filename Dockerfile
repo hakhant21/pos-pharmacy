@@ -16,12 +16,16 @@ RUN apt-get update -o Acquire::Retries=5 && apt-get install -y --no-install-reco
     pkg-config \
     libpng-dev \
     libjpeg-dev \
+    libicu-dev \
     libfreetype6-dev \
     zlib1g-dev \
     libzip-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Configure and install PHP extensions
+RUN docker-php-ext-configure intl && \
+    docker-php-ext-install intl
+
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd pdo pdo_mysql pcntl zip
 
