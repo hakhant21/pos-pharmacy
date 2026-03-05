@@ -3,6 +3,8 @@ import { Link, usePage } from "@inertiajs/react";
 import { FaPills, FaShoppingCart, FaBars, FaTimes } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { FaUser } from "react-icons/fa6";
+import { router } from "@inertiajs/react";
 
 export default function AuthenticatedLayout({ header, children }) {
     const { url } = usePage();
@@ -139,6 +141,21 @@ export default function AuthenticatedLayout({ header, children }) {
                                 </Link>
                             </div>
                         </div>
+
+                        <div className="flex items-center">
+                            <button
+                                onClick={() =>
+                                    window.location.replace("/admin")
+                                }
+                                className={`px-3 py-2 rounded-md text-sm font-medium relative transition-colors ${
+                                    isActive("/admin")
+                                        ? "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300"
+                                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                }`}
+                            >
+                                <FaUser className="inline mr-2" /> Go to Admin
+                            </button>
+                        </div>
                     </div>
                 </div>
             </nav>
@@ -196,6 +213,18 @@ export default function AuthenticatedLayout({ header, children }) {
                                         </span>
                                     )}
                                 </Link>
+
+                                <Link
+                                    href="/admin"
+                                    className={`block px-4 py-2 rounded-lg transition-colors ${
+                                        isActive("/admin")
+                                            ? "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300"
+                                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                    }`}
+                                    target="_blank"
+                                >
+                                    <FaUser className="inline mr-2" /> Admin
+                                </Link>
                             </div>
                         </div>
                     </div>
@@ -210,7 +239,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 </header>
             )}
 
-            <main className="min-h-screen pt-16 px-2 sm:px-4">
+            <main className="sm:pt-16 pb-12 transition-colors duration-200">
                 <div className="max-w-7xl mx-auto">
                     <ToastContainer
                         position="top-right"
