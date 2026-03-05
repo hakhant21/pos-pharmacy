@@ -1,4 +1,4 @@
-FROM php:8.2-fpm
+FROM php:8.3-fpm
 
 # Change to Singapore mirror for faster apt downloads
 RUN sed -i 's|http://deb.debian.org|https://mirror.sg.gs|g' /etc/apt/sources.list.d/debian.sources && \
@@ -23,12 +23,11 @@ RUN apt-get update -o Acquire::Retries=5 && apt-get install -y --no-install-reco
 
 # Configure and install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd pdo pdo_mysql pcntl zip sqlite
+    && docker-php-ext-install -j$(nproc) gd pdo pdo_mysql pcntl zip php-intl php-curl
 
 # Install and enable Redis extension
 RUN pecl install redis \
-    && docker-php-ext-enable redis \
-    && docker-php-ext-install ext-intl
+    && docker-php-ext-enable redis
 
 # Set timezone
 ENV TZ='Asia/Yangon'
