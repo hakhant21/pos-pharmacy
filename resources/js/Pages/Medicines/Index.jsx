@@ -1,6 +1,4 @@
-// resources/js/Pages/Medicines/Index.jsx
-
-import React, { useState } from "react";
+import { useState } from "react";
 import { Head, Link, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import Modal from "@/Components/Modal";
@@ -8,12 +6,27 @@ import {
     FaSearch,
     FaEye,
     FaCartPlus,
-    FaShoppingCart,
     FaMinus,
     FaPlus,
+    FaFilter,
+    FaTimes,
+    FaBox,
+    FaCalendarAlt,
+    FaArrowLeft,
+    FaChartLine,
+    FaMoneyBillWave,
+    FaShoppingBag,
+    FaUsers,
+    FaTrophy,
+    FaCalculator,
 } from "react-icons/fa";
 
-export default function Index({ medicines, categories, filters }) {
+export default function Index({
+    medicines,
+    categories,
+    filters,
+    salesSummary,
+}) {
     const [search, setSearch] = useState(filters.search || "");
     const [category, setCategory] = useState(filters.category || "");
     const [selectedMedicine, setSelectedMedicine] = useState(null);
@@ -21,7 +34,15 @@ export default function Index({ medicines, categories, filters }) {
     const [quantity, setQuantity] = useState(1);
     const [showBatchesModal, setShowBatchesModal] = useState(false);
     const [showQuantityModal, setShowQuantityModal] = useState(false);
+    const [showMobileFilters, setShowMobileFilters] = useState(false);
     const [loading, setLoading] = useState(false);
+
+    // Calculate total of recent sales
+    const recentSalesTotal =
+        salesSummary?.recent_sales?.reduce(
+            (sum, sale) => sum + parseFloat(sale.total || 0),
+            0,
+        ) || 0;
 
     const handleSearch = (value) => {
         setSearch(value);
@@ -31,19 +52,34 @@ export default function Index({ medicines, categories, filters }) {
             {
                 preserveState: true,
                 replace: true,
-            }
+            },
         );
     };
 
     const handleCategoryChange = (value) => {
         setCategory(value);
+        setShowMobileFilters(false);
         router.get(
             "/medicines",
             { search, category: value },
             {
                 preserveState: true,
                 replace: true,
-            }
+            },
+        );
+    };
+
+    const clearFilters = () => {
+        setSearch("");
+        setCategory("");
+        setShowMobileFilters(false);
+        router.get(
+            "/medicines",
+            {},
+            {
+                preserveState: true,
+                replace: true,
+            },
         );
     };
 
@@ -78,9 +114,10 @@ export default function Index({ medicines, categories, filters }) {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": document
-                        .querySelector('meta[name="csrf-token"]')
-                        ?.getAttribute("content") || "",
+                    "X-CSRF-TOKEN":
+                        document
+                            .querySelector('meta[name="csrf-token"]')
+                            ?.getAttribute("content") || "",
                 },
                 body: JSON.stringify({
                     batch_id: selectedBatch.id,
@@ -111,59 +148,53 @@ export default function Index({ medicines, categories, filters }) {
     };
 
     const formatPrice = (price) => {
-        return "$" + parseFloat(price).toFixed(2);
+        return parseFloat(price) + " Kyat";
+    };
+
+    const formatNumber = (num) => {
+        return new Intl.NumberFormat().format(num);
+    };
+
+    const getStockStatus = (stock) => {
+        if (stock > 20)
+            return {
+                text: "In Stock",
+                color: "text-green-600",
+                bg: "bg-green-100",
+            };
+        if (stock > 5)
+            return {
+                text: "Low Stock",
+                color: "text-yellow-600",
+                bg: "bg-yellow-100",
+            };
+        if (stock > 0)
+            return {
+                text: "Critical",
+                color: "text-red-600",
+                bg: "bg-red-100",
+            };
+        return {
+            text: "Out of Stock",
+            color: "text-gray-600",
+            bg: "bg-gray-100",
+        };
     };
 
     return (
         <AuthenticatedLayout
             header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
                     Medicines
                 </h2>
             }
         >
             <Head title="Medicines" />
-
-            <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    {/* Header */}
-                    <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900">
-                                Medicines
-                            </h1>
-                            <p className="text-sm text-gray-600 mt-1">
-                                Browse and add medicines to cart
-                            </p>
-                        </div>
-
-                        {/* Cart Icon */}
-                        <Link href="/cart" className="relative mt-2 sm:mt-0">
-                            <div className="bg-white p-2 rounded-lg shadow-sm hover:shadow-md transition">
-                                <FaShoppingCart className="text-xl text-blue-600" />
-                            </div>
-                        </Link>
-                    </div>
-
-                    {/* Filters */}
-                    <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {/* Search */}
-                            <div className="md:col-span-2">
-                                <div className="relative">
-                                    <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                                    <input
-                                        type="text"
-                                        value={search}
-                                        onChange={(e) =>
-                                            handleSearch(e.target.value)
-                                        }
-                                        placeholder="Search by medicine name..."
-                                        className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                                    />
-                                </div>
-                            </div>
-
+            <div className="py-6">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    {/* Filters - Desktop */}
+                    <div className="hidden md:block bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 sm:p-6 mb-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
                             {/* Category Filter */}
                             <div>
                                 <select
@@ -171,7 +202,7 @@ export default function Index({ medicines, categories, filters }) {
                                     onChange={(e) =>
                                         handleCategoryChange(e.target.value)
                                     }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none dark:bg-gray-700 dark:text-gray-100"
                                 >
                                     <option value="">All Categories</option>
                                     {categories.map((cat) => (
@@ -181,179 +212,743 @@ export default function Index({ medicines, categories, filters }) {
                                     ))}
                                 </select>
                             </div>
+                            {/* Search */}
+                            <div className="lg:col-span-3">
+                                <div className="relative">
+                                    <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        value={search}
+                                        onChange={(e) =>
+                                            handleSearch(e.target.value)
+                                        }
+                                        placeholder="Search by medicine name..."
+                                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 pl-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none dark:bg-gray-700 dark:text-gray-100"
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Medicines Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        {medicines.data.map((medicine) => (
-                            <div
-                                key={medicine.id}
-                                className="bg-white rounded-lg shadow-sm hover:shadow-md transition overflow-hidden"
-                            >
-                                <div className="p-4">
-                                    <h3 className="font-semibold text-gray-900">
-                                        {medicine.name}
-                                    </h3>
-                                    <p className="text-sm text-gray-600 mb-2">
-                                        {medicine.category}
-                                    </p>
+                    {/* Mobile Filter Button */}
+                    <div className="md:hidden mb-4">
+                        <button
+                            onClick={() => setShowMobileFilters(true)}
+                            className="w-full bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm flex items-center justify-center space-x-2"
+                        >
+                            <FaFilter className="text-blue-600" />
+                            <span className="font-medium">
+                                Filter Medicines
+                            </span>
+                        </button>
+                    </div>
 
-                                    {/* Stock Summary */}
-                                    <div className="mt-3 space-y-1">
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-gray-600">
-                                                Total Stock:
-                                            </span>
-                                            <span
-                                                className={`font-medium ${
-                                                    medicine.total_stock > 0
-                                                        ? "text-green-600"
-                                                        : "text-red-600"
-                                                }`}
-                                            >
-                                                {medicine.total_stock} units
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-gray-600">
-                                                Available Batches:
-                                            </span>
-                                            <span className="font-medium">
-                                                {medicine.batch_count}
-                                            </span>
-                                        </div>
-                                    </div>
+                    {/* Mobile Filters Modal */}
+                    <Modal
+                        show={showMobileFilters}
+                        onClose={() => setShowMobileFilters(false)}
+                        maxWidth="sm"
+                    >
+                        <div className="p-4 sm:p-6">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                    Filter Medicines
+                                </h3>
+                                <button
+                                    onClick={() => setShowMobileFilters(false)}
+                                    className="p-2 text-gray-500 hover:text-gray-700"
+                                >
+                                    <FaTimes />
+                                </button>
+                            </div>
 
-                                    {/* Action Button */}
-                                    <div className="mt-4">
-                                        <button
-                                            onClick={() => viewBatches(medicine)}
-                                            className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center justify-center"
-                                        >
-                                            <FaEye className="mr-2" /> View Batches
-                                        </button>
+                            <div className="space-y-4">
+                                {/* Category */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Category
+                                    </label>
+                                    <select
+                                        value={category}
+                                        onChange={(e) =>
+                                            setCategory(e.target.value)
+                                        }
+                                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                                    >
+                                        <option value="">All Categories</option>
+                                        {categories.map((cat) => (
+                                            <option key={cat.id} value={cat.id}>
+                                                {cat.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                {/* Search */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Search
+                                    </label>
+                                    <div className="relative">
+                                        <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                                        <input
+                                            type="text"
+                                            value={search}
+                                            onChange={(e) =>
+                                                setSearch(e.target.value)
+                                            }
+                                            placeholder="Search medicines..."
+                                            className="w-full px-3 py-2.5 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                                        />
                                     </div>
                                 </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex space-x-3 pt-4">
+                                    <button
+                                        onClick={clearFilters}
+                                        className="flex-1 px-4 py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
+                                    >
+                                        Clear
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            handleSearch(search);
+                                            setShowMobileFilters(false);
+                                        }}
+                                        className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                                    >
+                                        Apply
+                                    </button>
+                                </div>
                             </div>
-                        ))}
-                    </div>
+                        </div>
+                    </Modal>
+
+                    {/* Active Filters */}
+                    {(search || category) && (
+                        <div className="mb-4 flex flex-wrap items-center gap-2">
+                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                                Active filters:
+                            </span>
+                            {category && (
+                                <span className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                                    Category:{" "}
+                                    {
+                                        categories.find((c) => c.id == category)
+                                            ?.name
+                                    }
+                                    <button
+                                        onClick={() => handleCategoryChange("")}
+                                        className="ml-2 hover:text-blue-600"
+                                    >
+                                        <FaTimes className="text-xs" />
+                                    </button>
+                                </span>
+                            )}
+                            {search && (
+                                <span className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                                    Search: {search}
+                                    <button
+                                        onClick={() => handleSearch("")}
+                                        className="ml-2 hover:text-blue-600"
+                                    >
+                                        <FaTimes className="text-xs" />
+                                    </button>
+                                </span>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Medicines Grid */}
+                    {medicines.data.length === 0 ? (
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 sm:p-12 text-center">
+                            <div className="flex justify-center mb-4">
+                                <FaBox className="text-5xl sm:text-6xl text-gray-300 dark:text-gray-600" />
+                            </div>
+                            <h3 className="text-lg sm:text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                No medicines found
+                            </h3>
+                            <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4">
+                                Try adjusting your search or filter to find what
+                                you're looking for.
+                            </p>
+                            <button
+                                onClick={clearFilters}
+                                className="px-4 sm:px-6 py-2 sm:py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                            >
+                                Clear Filters
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+                            {medicines.data.map((medicine) => {
+                                const stockStatus = getStockStatus(
+                                    medicine.total_stock,
+                                );
+                                return (
+                                    <div
+                                        key={medicine.id}
+                                        className="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden border border-gray-100 dark:border-gray-700"
+                                    >
+                                        <div className="p-4 sm:p-5">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-base sm:text-lg">
+                                                    {medicine.name}
+                                                </h3>
+                                                <span
+                                                    className={`px-2 py-1 rounded-full text-xs font-medium ${stockStatus.bg} ${stockStatus.color}`}
+                                                >
+                                                    {stockStatus.text}
+                                                </span>
+                                            </div>
+
+                                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3">
+                                                {medicine.category}
+                                            </p>
+
+                                            {/* Stock Summary Cards */}
+                                            <div className="grid grid-cols-2 gap-2 mt-3">
+                                                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-2 text-center">
+                                                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                                                        Total Stock
+                                                    </span>
+                                                    <p
+                                                        className={`font-bold text-sm sm:text-base ${medicine.total_stock > 0 ? "text-green-600" : "text-red-600"}`}
+                                                    >
+                                                        {medicine.total_stock}
+                                                    </p>
+                                                </div>
+                                                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-2 text-center">
+                                                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                                                        Batches
+                                                    </span>
+                                                    <p className="font-bold text-sm sm:text-base text-blue-600">
+                                                        {medicine.batch_count}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {/* Action Button */}
+                                            <div className="mt-4">
+                                                <button
+                                                    onClick={() =>
+                                                        viewBatches(medicine)
+                                                    }
+                                                    disabled={
+                                                        medicine.total_stock ===
+                                                        0
+                                                    }
+                                                    className={`w-full px-4 py-2.5 sm:py-3 rounded-lg transition flex items-center justify-center space-x-2 text-sm sm:text-base ${
+                                                        medicine.total_stock > 0
+                                                            ? "bg-blue-600 hover:bg-blue-700 text-white"
+                                                            : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                                                    }`}
+                                                >
+                                                    <FaEye className="text-sm sm:text-base" />
+                                                    <span>View Batches</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
 
                     {/* Pagination */}
                     {medicines.links && medicines.links.length > 3 && (
-                        <div className="mt-6 flex justify-center">
-                            {medicines.links.map((link, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => link.url && router.get(link.url)}
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                    className={`mx-1 px-3 py-1 rounded ${
-                                        link.active
-                                            ? "bg-blue-600 text-white"
-                                            : "bg-white text-gray-700 hover:bg-gray-100"
-                                    } ${!link.url ? "opacity-50 cursor-not-allowed" : ""}`}
-                                    disabled={!link.url}
-                                />
-                            ))}
+                        <div className="mt-6 sm:mt-8 flex justify-center">
+                            <div className="flex flex-wrap justify-center gap-1 sm:gap-2">
+                                {medicines.links.map((link, index) => (
+                                    <button
+                                        key={index}
+                                        onClick={() =>
+                                            link.url && router.get(link.url)
+                                        }
+                                        dangerouslySetInnerHTML={{
+                                            __html: link.label,
+                                        }}
+                                        className={`px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm rounded ${
+                                            link.active
+                                                ? "bg-blue-600 text-white"
+                                                : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        } ${!link.url ? "opacity-50 cursor-not-allowed" : ""}`}
+                                        disabled={!link.url}
+                                    />
+                                ))}
+                            </div>
                         </div>
                     )}
-                </div>
-            </div>
 
-            {/* Batches Modal */}
-            <Modal show={showBatchesModal} onClose={() => setShowBatchesModal(false)} maxWidth="2xl">
-                <div className="p-6">
-                    <h2 className="text-lg font-semibold mb-4">
-                        {selectedMedicine?.name} - Available Batches
-                    </h2>
+                    <div className="mt-6 sm:mt-8">
+                        {/* Sales Summary Section */}
+                        {salesSummary && (
+                            <div className="mb-6 sm:mb-8">
+                                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+                                    {/* Summary Header */}
+                                    <div className="px-4 sm:px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+                                        <div className="flex items-center space-x-2">
+                                            <FaChartLine className="text-lg sm:text-xl" />
+                                            <h2 className="text-base sm:text-lg font-semibold">
+                                                Sales Overview
+                                            </h2>
+                                        </div>
+                                    </div>
 
-                    {loading ? (
-                        <div className="text-center py-8">
-                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
-                        </div>
-                    ) : (
-                        <div className="space-y-3">
-                            {selectedMedicine?.batches?.map((batch) => (
-                                <div
-                                    key={batch.id}
-                                    className={`border rounded-lg p-4 ${
-                                        batch.days_to_expiry <= 60
-                                            ? "bg-yellow-50"
-                                            : "bg-white"
-                                    }`}
-                                >
-                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                                        <div className="mb-2 sm:mb-0">
-                                            <div className="flex items-center flex-wrap gap-2">
-                                                <span className="font-medium">
-                                                    {batch.strength_display}
+                                    {/* Summary Cards */}
+                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 p-4 sm:p-6">
+                                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 sm:p-4">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                                                    Total Sales
                                                 </span>
-                                                {batch.days_to_expiry <= 60 && (
-                                                    <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-                                                        Expires in{" "}
-                                                        {batch.days_to_expiry} days
-                                                    </span>
-                                                )}
+                                                <FaShoppingBag className="text-blue-600 dark:text-blue-400 text-sm sm:text-base" />
                                             </div>
-                                            <p className="text-xs text-gray-500 mt-1">
-                                                Exp: {batch.expiry_date}
+                                            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                                                {formatNumber(
+                                                    salesSummary.total_sales,
+                                                )}
+                                            </p>
+                                            <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                                                +{salesSummary.today_sales}{" "}
+                                                today
                                             </p>
                                         </div>
 
-                                        <div className="flex items-center justify-between sm:justify-end space-x-4">
-                                            <div className="text-right">
-                                                <p className="font-bold text-blue-600">
-                                                    {formatPrice(batch.selling_price)}
-                                                </p>
-                                                <p className="text-xs text-gray-500">
-                                                    Stock: {batch.available_quantity}
-                                                </p>
+                                        <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 sm:p-4">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                                                    Items Sold
+                                                </span>
+                                                <FaBox className="text-green-600 dark:text-green-400 text-sm sm:text-base" />
                                             </div>
+                                            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                                                {formatNumber(
+                                                    salesSummary.total_items_sold,
+                                                )}
+                                            </p>
+                                        </div>
 
-                                            <button
-                                                onClick={() => openQuantityModal(batch)}
-                                                className="bg-blue-600 text-white text-sm py-2 px-4 rounded-lg hover:bg-blue-700 transition flex items-center"
-                                            >
-                                                <FaCartPlus className="mr-1" /> Add
-                                            </button>
+                                        <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 sm:p-4">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                                                    Total Revenue
+                                                </span>
+                                                <FaMoneyBillWave className="text-purple-600 dark:text-purple-400 text-sm sm:text-base" />
+                                            </div>
+                                            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                                                {formatPrice(
+                                                    salesSummary.total_revenue,
+                                                )}
+                                            </p>
+                                            <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                                                +
+                                                {formatPrice(
+                                                    salesSummary.today_revenue,
+                                                )}{" "}
+                                                today
+                                            </p>
+                                        </div>
+
+                                        <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-3 sm:p-4">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                                                    Avg. Order
+                                                </span>
+                                                <FaUsers className="text-orange-600 dark:text-orange-400 text-sm sm:text-base" />
+                                            </div>
+                                            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                                                {formatPrice(
+                                                    salesSummary.average_order_value,
+                                                )}
+                                            </p>
                                         </div>
                                     </div>
+
+                                    {/* Top Selling Today */}
+                                    {salesSummary.top_selling_today &&
+                                        salesSummary.top_selling_today.length >
+                                            0 && (
+                                            <div className="border-t border-gray-200 dark:border-gray-700">
+                                                <div className="px-4 sm:px-6 py-3 bg-gray-50 dark:bg-gray-700/50">
+                                                    <div className="flex items-center space-x-2">
+                                                        <FaTrophy className="text-yellow-500" />
+                                                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            Top Selling
+                                                            Medicines Today
+                                                        </h3>
+                                                    </div>
+                                                </div>
+                                                <div className="overflow-x-auto">
+                                                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                                        <thead className="bg-gray-50 dark:bg-gray-800">
+                                                            <tr>
+                                                                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                                                    Medicine
+                                                                </th>
+                                                                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                                                    Quantity
+                                                                    Sold
+                                                                </th>
+                                                                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                                                    Revenue
+                                                                </th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                                            {salesSummary.top_selling_today.map(
+                                                                (
+                                                                    item,
+                                                                    index,
+                                                                ) => (
+                                                                    <tr
+                                                                        key={
+                                                                            index
+                                                                        }
+                                                                        className="hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                                                                    >
+                                                                        <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                            {
+                                                                                item.medicine_name
+                                                                            }
+                                                                        </td>
+                                                                        <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                                                            {formatNumber(
+                                                                                item.quantity,
+                                                                            )}{" "}
+                                                                            units
+                                                                        </td>
+                                                                        <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm font-medium text-green-600 dark:text-green-400">
+                                                                            {formatPrice(
+                                                                                item.revenue,
+                                                                            )}
+                                                                        </td>
+                                                                    </tr>
+                                                                ),
+                                                            )}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                    {/* Recent Sales Table with Total */}
+                                    {salesSummary.recent_sales &&
+                                        salesSummary.recent_sales.length >
+                                            0 && (
+                                            <div className="border-t border-gray-200 dark:border-gray-700">
+                                                <div className="px-4 sm:px-6 py-3 bg-gray-50 dark:bg-gray-700/50 flex justify-between items-center">
+                                                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                        Recent Sales
+                                                    </h3>
+                                                    <div className="flex items-center space-x-2 bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full">
+                                                        <FaCalculator className="text-blue-600 dark:text-blue-400 text-xs" />
+                                                        <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                                                            Total:{" "}
+                                                            {formatPrice(
+                                                                recentSalesTotal,
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div className="overflow-x-auto">
+                                                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                                        <thead className="bg-gray-50 dark:bg-gray-800">
+                                                            <tr>
+                                                                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                                                    Customer
+                                                                </th>
+                                                                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                                                    Items
+                                                                </th>
+                                                                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                                                    Total
+                                                                </th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                                            {salesSummary.recent_sales.map(
+                                                                (sale) => (
+                                                                    <tr
+                                                                        key={
+                                                                            sale.id
+                                                                        }
+                                                                        className="hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                                                                    >
+                                                                        <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                                                            {
+                                                                                sale.customer
+                                                                            }
+                                                                        </td>
+                                                                        <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                                                            {
+                                                                                sale.total_items
+                                                                            }
+                                                                        </td>
+                                                                        <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm font-medium text-green-600 dark:text-green-400">
+                                                                            {formatPrice(
+                                                                                sale.total,
+                                                                            )}
+                                                                        </td>
+                                                                    </tr>
+                                                                ),
+                                                            )}
+                                                            {/* Total Row */}
+                                                            <tr className="bg-gray-50 dark:bg-gray-700/50 font-semibold">
+                                                                <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                                                    Total
+                                                                </td>
+                                                                <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                                                    {salesSummary.recent_sales.reduce(
+                                                                        (
+                                                                            sum,
+                                                                            sale,
+                                                                        ) =>
+                                                                            sum +
+                                                                            (sale.total_items ||
+                                                                                0),
+                                                                        0,
+                                                                    )}
+                                                                </td>
+                                                                <td className="px-4 sm:px-6 py-3 whitespace-nowrap text-sm font-bold text-blue-600 dark:text-blue-400">
+                                                                    {formatPrice(
+                                                                        recentSalesTotal,
+                                                                    )}
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        )}
                                 </div>
-                            ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Batches Modal - Larger Size */}
+            <Modal
+                show={showBatchesModal}
+                onClose={() => setShowBatchesModal(false)}
+                maxWidth="4xl"
+            >
+                <div className="p-4 sm:p-6 lg:p-8">
+                    <div className="flex justify-between items-center mb-4 sm:mb-6">
+                        <div>
+                            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                                {selectedMedicine?.name}
+                            </h2>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                Available Batches
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => setShowBatchesModal(false)}
+                            className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                        >
+                            <FaTimes className="text-xl" />
+                        </button>
+                    </div>
+
+                    {loading ? (
+                        <div className="text-center py-12 sm:py-16">
+                            <div className="inline-block animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-4 border-blue-500 border-t-transparent"></div>
+                            <p className="mt-4 text-gray-600">
+                                Loading batches...
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="space-y-3 sm:space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                            {selectedMedicine?.batches?.length === 0 ? (
+                                <div className="text-center py-12 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                                    <FaBox className="text-4xl text-gray-400 mx-auto mb-3" />
+                                    <p className="text-gray-600 dark:text-gray-400">
+                                        No batches available
+                                    </p>
+                                </div>
+                            ) : (
+                                selectedMedicine?.batches?.map((batch) => (
+                                    <div
+                                        key={batch.id}
+                                        className={`border rounded-lg p-4 sm:p-5 transition-all hover:shadow-md ${
+                                            batch.days_to_expiry <= 60
+                                                ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800"
+                                                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                                        }`}
+                                    >
+                                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                                            <div className="flex-1">
+                                                <div className="flex items-center flex-wrap gap-2 mb-2">
+                                                    <span className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                                        {batch.strength_display}
+                                                    </span>
+                                                    {batch.days_to_expiry <=
+                                                        60 && (
+                                                        <span className="px-2 sm:px-3 py-1 bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200 text-xs sm:text-sm rounded-full flex items-center">
+                                                            <FaCalendarAlt className="mr-1 text-xs" />
+                                                            Expires in{" "}
+                                                            {
+                                                                batch.days_to_expiry
+                                                            }{" "}
+                                                            days
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4 mt-2">
+                                                    <div>
+                                                        <span className="text-xs text-gray-500 dark:text-gray-400 block">
+                                                            Batch #
+                                                        </span>
+                                                        <span className="text-sm font-medium">
+                                                            {batch.batch_no}
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-xs text-gray-500 dark:text-gray-400 block">
+                                                            Expiry
+                                                        </span>
+                                                        <span className="text-sm font-medium">
+                                                            {batch.expiry_date}
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-xs text-gray-500 dark:text-gray-400 block">
+                                                            Available
+                                                        </span>
+                                                        <span className="text-sm font-medium text-green-600">
+                                                            {
+                                                                batch.available_quantity
+                                                            }{" "}
+                                                            units
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 lg:flex-col xl:flex-row">
+                                                <div className="text-left lg:text-right">
+                                                    <span className="text-xs text-gray-500 dark:text-gray-400 block">
+                                                        Price
+                                                    </span>
+                                                    <p className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
+                                                        {formatPrice(
+                                                            batch.selling_price,
+                                                        )}
+                                                    </p>
+                                                </div>
+
+                                                <button
+                                                    onClick={() =>
+                                                        openQuantityModal(batch)
+                                                    }
+                                                    disabled={
+                                                        batch.available_quantity ===
+                                                        0
+                                                    }
+                                                    className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition flex items-center justify-center space-x-2 text-sm sm:text-base w-full sm:w-auto ${
+                                                        batch.available_quantity >
+                                                        0
+                                                            ? "bg-blue-600 hover:bg-blue-700 text-white"
+                                                            : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                                                    }`}
+                                                >
+                                                    <FaCartPlus />
+                                                    <span>Add to Cart</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     )}
                 </div>
             </Modal>
 
-            {/* Quantity Modal */}
-            <Modal show={showQuantityModal} onClose={() => setShowQuantityModal(false)} maxWidth="sm">
-                <div className="p-6">
-                    <h2 className="text-lg font-semibold mb-4">Select Quantity</h2>
+            {/* Quantity Modal - Medium Size */}
+            <Modal
+                show={showQuantityModal}
+                onClose={() => setShowQuantityModal(false)}
+                maxWidth="lg"
+            >
+                <div className="p-4 sm:p-6 lg:p-8">
+                    <div className="flex justify-between items-center mb-4 sm:mb-6">
+                        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                            Select Quantity
+                        </h2>
+                        <button
+                            onClick={() => setShowQuantityModal(false)}
+                            className="p-2 text-gray-500 hover:text-gray-700"
+                        >
+                            <FaTimes className="text-xl" />
+                        </button>
+                    </div>
 
                     {selectedBatch && (
                         <div>
-                            <div className="mb-4">
-                                <p className="font-medium">
-                                    {selectedBatch.strength_display}
-                                </p>
-                                <p className="text-sm text-gray-600">
-                                    Price: {formatPrice(selectedBatch.selling_price)}
-                                </p>
-                                <p className="text-sm text-gray-600">
-                                    Available: {selectedBatch.available_quantity}
-                                </p>
+                            {/* Product Summary */}
+                            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 sm:p-6 mb-6">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                    <div>
+                                        <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                                            {selectedBatch.strength_display}
+                                        </h3>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <span className="text-xs text-gray-500 dark:text-gray-400 block">
+                                                    Price per unit
+                                                </span>
+                                                <p className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
+                                                    {formatPrice(
+                                                        selectedBatch.selling_price,
+                                                    )}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <span className="text-xs text-gray-500 dark:text-gray-400 block">
+                                                    Available stock
+                                                </span>
+                                                <p className="text-xl sm:text-2xl font-bold text-green-600">
+                                                    {
+                                                        selectedBatch.available_quantity
+                                                    }
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="sm:text-right">
+                                        <span className="text-xs text-gray-500 dark:text-gray-400 block">
+                                            Batch #
+                                        </span>
+                                        <p className="text-base font-medium">
+                                            {selectedBatch.batch_no}
+                                        </p>
+                                        <span className="text-xs text-gray-500 dark:text-gray-400 block mt-2">
+                                            Expiry
+                                        </span>
+                                        <p className="text-base font-medium">
+                                            {selectedBatch.expiry_date}
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                            {/* Quantity Selector */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                                     Quantity
                                 </label>
-                                <div className="flex items-center">
+                                <div className="flex items-center justify-center sm:justify-start">
                                     <button
                                         onClick={() =>
-                                            setQuantity(Math.max(1, quantity - 1))
+                                            setQuantity(
+                                                Math.max(1, quantity - 1),
+                                            )
                                         }
-                                        className="px-4 py-2 border rounded-l-lg bg-gray-100 hover:bg-gray-200"
+                                        className="w-10 h-10 sm:w-12 sm:h-12 border rounded-l-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 flex items-center justify-center"
                                     >
                                         <FaMinus />
                                     </button>
@@ -366,51 +961,73 @@ export default function Index({ medicines, categories, filters }) {
                                                     selectedBatch.available_quantity,
                                                     Math.max(
                                                         1,
-                                                        parseInt(e.target.value) || 1
-                                                    )
-                                                )
+                                                        parseInt(
+                                                            e.target.value,
+                                                        ) || 1,
+                                                    ),
+                                                ),
                                             )
                                         }
                                         min="1"
                                         max={selectedBatch.available_quantity}
-                                        className="w-20 text-center border-t border-b py-2 focus:outline-none"
+                                        className="w-16 sm:w-20 h-10 sm:h-12 text-center border-t border-b border-gray-300 dark:border-gray-600 focus:outline-none dark:bg-gray-700 dark:text-gray-100 text-base sm:text-lg"
                                     />
                                     <button
                                         onClick={() =>
                                             setQuantity(
                                                 Math.min(
                                                     selectedBatch.available_quantity,
-                                                    quantity + 1
-                                                )
+                                                    quantity + 1,
+                                                ),
                                             )
                                         }
-                                        className="px-4 py-2 border rounded-r-lg bg-gray-100 hover:bg-gray-200"
+                                        className="w-10 h-10 sm:w-12 sm:h-12 border rounded-r-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 flex items-center justify-center"
                                     >
                                         <FaPlus />
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="flex justify-between items-center mb-4 p-3 bg-gray-50 rounded-lg">
-                                <span className="font-medium">Total:</span>
-                                <span className="text-xl font-bold text-blue-600">
-                                    {formatPrice(quantity * selectedBatch.selling_price)}
-                                </span>
-                            </div>
+                            {/* Total and Actions */}
+                            <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                                <div className="flex justify-between items-center mb-6">
+                                    <span className="text-base sm:text-lg font-medium text-gray-700 dark:text-gray-300">
+                                        Total Amount:
+                                    </span>
+                                    <div className="text-right">
+                                        <span className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400">
+                                            {formatPrice(
+                                                quantity *
+                                                    selectedBatch.selling_price,
+                                            )}
+                                        </span>
+                                        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                            ({quantity} x{" "}
+                                            {formatPrice(
+                                                selectedBatch.selling_price,
+                                            )}
+                                            )
+                                        </p>
+                                    </div>
+                                </div>
 
-                            <div className="flex space-x-3">
-                                <button
-                                    onClick={() => setShowQuantityModal(false)}
-                                    className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300 transition"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={addToCart}
-                                    className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
-                                >
-                                    Add to Cart
-                                </button>
+                                <div className="flex flex-col sm:flex-row gap-3">
+                                    <button
+                                        onClick={() =>
+                                            setShowQuantityModal(false)
+                                        }
+                                        className="flex-1 px-4 py-3 sm:py-4 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition text-base sm:text-lg"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={addToCart}
+                                        className="flex-1 px-4 py-3 sm:py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-base sm:text-lg flex items-center justify-center space-x-2"
+                                    >
+                                        <FaCartPlus />
+                                        <span>Add to Cart</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}
