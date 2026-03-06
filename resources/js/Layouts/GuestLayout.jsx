@@ -118,7 +118,7 @@ export default function GuestLayout({ header, children }) {
                             {/* Desktop Navigation Links */}
                             <div className="hidden md:ml-6 md:flex md:space-x-4">
                                 <Link
-                                    href="/medicines"
+                                    href="route('medicines.index')"
                                     className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                                         isActive("/medicines")
                                             ? "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300"
@@ -177,7 +177,7 @@ export default function GuestLayout({ header, children }) {
                         <div className="p-4">
                             <div className="space-y-2">
                                 <Link
-                                    href="/medicines"
+                                    href="route('medicines.index')"
                                     className={`block px-4 py-2 rounded-lg transition-colors ${
                                         isActive("/medicines")
                                             ? "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300"
@@ -231,7 +231,7 @@ export default function GuestLayout({ header, children }) {
             {/* Mobile Bottom Navigation */}
             <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex justify-around items-center py-2 px-4 md:hidden z-40 transition-colors duration-200">
                 <Link
-                    href="/medicines"
+                    href="route('medicines.index')"
                     className={`flex flex-col items-center transition-colors ${
                         isActive("/medicines")
                             ? "text-blue-600 dark:text-blue-400"

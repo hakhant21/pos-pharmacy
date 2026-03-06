@@ -6,12 +6,8 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', function () {
-    return redirect(route('medicines.index'));
-});
-
 // Medicine routes
-Route::get('/medicines', [MedicineController::class, 'index'])->name('medicines.index');
+Route::get('/', [MedicineController::class, 'index'])->name('medicines.index');
 Route::get('/medicines/{id}/batches', [MedicineController::class, 'getBatches'])->name('medicines.batches');
 
 // Cart routes

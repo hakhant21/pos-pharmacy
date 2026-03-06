@@ -181,7 +181,7 @@ export default function Index({
                     <div className="mb-4 sm:mb-6 flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                             <Link
-                                href="/medicines"
+                                href="route('medicines.index')"
                                 className="sm:hidden p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
                             >
                                 <FaArrowLeft />

@@ -47,7 +47,7 @@ export default function Index({
     const handleSearch = (value) => {
         setSearch(value);
         router.get(
-            "/medicines",
+            route("medicines.index"),
             { search: value, category },
             {
                 preserveState: true,
@@ -60,7 +60,7 @@ export default function Index({
         setCategory(value);
         setShowMobileFilters(false);
         router.get(
-            "/medicines",
+            route("medicines.index"),
             { search, category: value },
             {
                 preserveState: true,
@@ -74,7 +74,7 @@ export default function Index({
         setCategory("");
         setShowMobileFilters(false);
         router.get(
-            "/medicines",
+            route("medicines.index"),
             {},
             {
                 preserveState: true,
