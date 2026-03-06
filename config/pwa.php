@@ -25,7 +25,6 @@ return [
         'display' => 'fullscreen',
         'description' => 'A Progressive Web Application setup for Laravel projects.',
         'theme_color' => '#6777ef',
-        'start_url' => config('app.url'),
         'icons' => [
             [
                 'src' => 'logo.png',
