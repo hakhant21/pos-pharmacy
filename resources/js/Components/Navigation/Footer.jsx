@@ -5,7 +5,7 @@ export default function Footer({ cartCount, isActive }) {
     return (
         <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex justify-around items-center py-2 px-4 md:hidden z-40 transition-colors duration-200">
             <Link
-                href="/medicines"
+                href={route("medicines.index")}
                 className={`flex flex-col items-center transition-colors ${
                     isActive("/medicines")
                         ? "text-blue-600 dark:text-blue-400"
