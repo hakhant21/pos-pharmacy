@@ -36,11 +36,6 @@ RUN pecl install redis \
 ENV TZ='Asia/Yangon'
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-RUN touch /var/www/html/database/database.sqlite
-RUN chmod 666 /var/www/html/database/database.sqlite
-RUN chown -R www-data:www-data /var/www/html/storage
-RUN chown -R www-data:www-data /var/www/html/bootstrap/cache
-
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
