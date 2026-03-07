@@ -99,7 +99,7 @@ export default function Index({
                 setCartCount(0);
                 setShowCheckoutModal(false);
                 setShowReceiptModal(false);
-                router.visit(route("medicines.index"));
+                router.visit("/medicines");
             } else {
                 toast.error(result.message || "Checkout failed.");
             }
@@ -181,7 +181,7 @@ export default function Index({
                     <div className="mb-4 sm:mb-6 flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                             <Link
-                                href="route('medicines.index')"
+                                href="/medicines"
                                 className="sm:hidden p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
                             >
                                 <FaArrowLeft />
@@ -304,7 +304,7 @@ export default function Index({
                 isProcessing={isProcessing || isLoading}
                 onDone={() => {
                     setShowCheckoutModal(false);
-                    router.visit(route("medicines.index"));
+                    router.visit("/medicines");
                 }}
             />
 
@@ -315,7 +315,7 @@ export default function Index({
                 onPrint={printReceipt}
                 onDone={() => {
                     setShowReceiptModal(false);
-                    router.visit(route("medicines.index"));
+                    router.visit("/medicines");
                 }}
             />
         </AuthenticatedLayout>

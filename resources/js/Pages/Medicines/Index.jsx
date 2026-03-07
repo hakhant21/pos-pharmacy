@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Head, Link, router } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import Modal from "@/Components/Modal";
 import {
@@ -47,7 +47,7 @@ export default function Index({
     const handleSearch = (value) => {
         setSearch(value);
         router.get(
-            route("medicines.index"),
+            "/medicines",
             { search: value, category },
             {
                 preserveState: true,
@@ -60,7 +60,7 @@ export default function Index({
         setCategory(value);
         setShowMobileFilters(false);
         router.get(
-            route("medicines.index"),
+            "/medicines",
             { search, category: value },
             {
                 preserveState: true,
@@ -74,7 +74,7 @@ export default function Index({
         setCategory("");
         setShowMobileFilters(false);
         router.get(
-            route("medicines.index"),
+            "/medicines",
             {},
             {
                 preserveState: true,

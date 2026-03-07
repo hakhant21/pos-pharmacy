@@ -25,7 +25,7 @@ export default function Mobile({ cartCount, setSidebarOpen, isActive }) {
                 <div className="p-4">
                     <div className="space-y-2">
                         <Link
-                            href="route('medicines.index')"
+                            href="/medicines"
                             className={`block px-4 py-2 rounded-lg transition-colors ${
                                 isActive("/medicines")
                                     ? "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300"

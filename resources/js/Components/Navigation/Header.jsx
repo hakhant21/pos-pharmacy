@@ -26,7 +26,7 @@ export default function Header({ cartCount, setSidebarOpen, isActive }) {
 
                         <div className="hidden md:ml-6 md:flex md:space-x-4">
                             <Link
-                                href="route('medicines.index')"
+                                href="/medicines"
                                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                                     isActive("/medicines")
                                         ? "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300"
