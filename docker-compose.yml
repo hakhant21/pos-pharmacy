@@ -8,9 +8,10 @@ services:
         environment:
             APP_URL: ${APP_URL:-http://localhost:9000}
             ASSET_URL: ${ASSET_URL:-http://localhost:5173}
+            DB_CONNECTION: ${DB_DB_CONNECTION:-sqlite}
+            DB_DATABASE:
         ports:
             - "9000:9000"
-        user: "1000:1000"
         volumes:
             - ./:/var/www/html
             - ./docker/supervisor/supervisord.conf:/etc/supervisor/supervisord.conf
