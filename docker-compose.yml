@@ -14,7 +14,6 @@ services:
         volumes:
             - ./:/var/www/html
             - ./docker/supervisor/supervisord.conf:/etc/supervisor/supervisord.conf
-            - ./database
         restart: unless-stopped
         command: ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]
         networks:
