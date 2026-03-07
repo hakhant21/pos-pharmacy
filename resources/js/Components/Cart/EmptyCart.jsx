@@ -27,7 +27,7 @@ export const EmptyCart = () => (
                             yet.
                         </p>
                         <Link
-                            href="route('medicine.index')"
+                            href="/medicines"
                             className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white text-sm sm:text-base rounded-lg hover:bg-blue-700 transition-colors"
                         >
                             <FaArrowLeft className="mr-2 text-sm" />
